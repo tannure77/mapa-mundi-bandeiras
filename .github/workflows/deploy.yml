@@ -29,8 +29,8 @@ jobs:
               set net:max-retries 2;
               set net:reconnect-interval-base 5;
               open -u $FTP_USER,$FTP_PASS $FTP_SERVER;
-              mkdir -p /ft/bandeiras;
-              cd /ft/bandeiras;
+              mkdir -p /public_html/ft/bandeiras;
+              cd /public_html/ft/bandeiras;
               put index.html;
               bye
             " && echo "Deploy concluído na tentativa $tentativa!" && exit 0
