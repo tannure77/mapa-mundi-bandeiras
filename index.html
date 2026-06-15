@@ -178,71 +178,109 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── DETAIL MODAL ── */
-#detail-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.78);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.22s;
+/* ── DETAIL STRIP ── */
+#detail-strip {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  background: #08080f;
+  border-bottom: 1px solid #1e1e2e;
+  /* grid-line pattern */
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
-#detail-overlay.open { opacity: 1; pointer-events: auto; }
+#detail-strip.open {
+  max-height: 480px;
+  opacity: 1;
+}
 
-#detail-panel {
-  background: #fff;
-  border-radius: 20px;
-  max-width: 720px; width: 92%; max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  padding: 48px 40px 44px;
+#detail-strip-inner {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 36px;
-  align-items: start;
+  grid-template-columns: 300px 1fr;
+  gap: 52px;
+  padding: 44px 60px 48px;
+  align-items: center;
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 #detail-close {
-  position: absolute; top: 14px; right: 18px;
-  font-size: 26px; line-height: 1;
-  background: none; border: none; cursor: pointer;
-  color: #9ca3af; padding: 4px 8px; border-radius: 6px;
+  position: absolute; top: 16px; right: 24px;
+  font-size: 22px; line-height: 1;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; cursor: pointer; color: #9ca3af;
+  padding: 4px 10px;
+  transition: background 0.15s, color 0.15s;
 }
-#detail-close:hover { color: #374151; background: #f3f4f6; }
+#detail-close:hover { background: rgba(255,255,255,0.12); color: #f3f4f6; }
 
-#detail-flag {
-  font-size: 160px; line-height: 1; text-align: center;
-  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.18));
-  padding-top: 4px;
+#detail-flag-wrap {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+#detail-flag-wrap::before {
+  content: '';
+  position: absolute;
+  width: 340px; height: 220px;
+  background: radial-gradient(ellipse, var(--glow, rgba(99,102,241,0.35)) 0%, transparent 68%);
+  filter: blur(28px);
+  z-index: 0;
+  pointer-events: none;
+}
+#detail-flag-img {
+  width: 280px; height: auto;
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  position: relative; z-index: 1;
+  display: block;
+}
+#detail-flag-emoji {
+  font-size: 200px; line-height: 1;
+  display: none;
+  position: relative; z-index: 1;
 }
 
 #detail-name {
-  font-size: 26px; font-weight: 800;
-  margin: 0 0 12px; color: #111827;
+  font-size: 32px; font-weight: 800;
+  color: #f9fafb; margin: 0 0 14px;
+  letter-spacing: -0.5px;
 }
 
 #detail-badges {
   display: flex; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
-
 #detail-type, #detail-continent-badge {
   border-radius: 999px;
-  padding: 4px 14px;
+  padding: 5px 14px;
   font-size: 12px; font-weight: 700;
   display: inline-block;
 }
 #detail-type { background: var(--accent); color: #fff; }
-#detail-continent-badge { color: #1f2937; }
+#detail-continent-badge { color: #111; }
 
 #detail-desc {
-  font-size: 15px; line-height: 1.75;
-  color: #374151; margin: 0;
+  font-size: 15px; line-height: 1.8;
+  color: #9ca3af; margin: 0;
 }
 
 /* ── MOBILE ── */
 @media (max-width: 900px) {
   #grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
+  #detail-strip.open { max-height: 700px; }
+  #detail-strip-inner {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 36px;
+    gap: 28px;
+  }
+  #detail-flag-img { width: 180px; }
 }
 
 @media (max-width: 600px) {
@@ -253,12 +291,6 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
   #grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 14px 32px; }
   .flag-emoji { font-size: 65px; }
   .flag-card { padding: 25px 12px 18px; }
-  #detail-panel {
-    grid-template-columns: 1fr;
-    padding: 40px 24px 32px;
-    gap: 20px;
-  }
-  #detail-flag { font-size: 110px; }
 }
 </style>
 </head>
@@ -276,6 +308,24 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 </header>
 
 <div id="stats"></div>
+
+<div id="detail-strip">
+  <div id="detail-strip-inner">
+    <div id="detail-flag-wrap">
+      <img id="detail-flag-img" src="" alt="">
+      <span id="detail-flag-emoji"></span>
+    </div>
+    <div id="detail-info">
+      <div id="detail-badges">
+        <span id="detail-type"></span>
+        <span id="detail-continent-badge"></span>
+      </div>
+      <h2 id="detail-name"></h2>
+      <p id="detail-desc"></p>
+    </div>
+    <button id="detail-close" onclick="closeDetail()">×</button>
+  </div>
+</div>
 
 <div id="grid">
   <div id="empty">Nenhum país encontrado para essa busca.</div>
@@ -627,24 +677,49 @@ function applyFilters() {
 }
 
 // ================================================================
-//  DETAIL MODAL
+//  DETAIL STRIP
 // ================================================================
+const $strip   = document.getElementById('detail-strip');
+const $flagImg = document.getElementById('detail-flag-img');
+const $flagEmo = document.getElementById('detail-flag-emoji');
+const $dName   = document.getElementById('detail-name');
+const $dType   = document.getElementById('detail-type');
+const $dBadge  = document.getElementById('detail-continent-badge');
+const $dDesc   = document.getElementById('detail-desc');
+const $dWrap   = document.getElementById('detail-flag-wrap');
+
 function openDetail(c) {
-  document.getElementById('detail-flag').textContent = c.flag;
-  document.getElementById('detail-name').textContent = c.name;
-  document.getElementById('detail-type').textContent = c.type === 'território' ? 'Território' : 'País';
+  // flag image via flagcdn (fallback to emoji)
+  const imgSrc = `https://flagcdn.com/w320/${c.iso.toLowerCase()}.png`;
+  $flagImg.src = imgSrc;
+  $flagImg.alt = c.name;
+  $flagImg.style.display = 'block';
+  $flagEmo.style.display = 'none';
+  $flagImg.onerror = () => {
+    $flagImg.style.display = 'none';
+    $flagEmo.style.display = 'block';
+    $flagEmo.textContent = c.flag;
+  };
+
+  $dName.textContent = c.name;
+  $dType.textContent = c.type === 'território' ? 'Território' : 'País';
+
   const cont = CONTINENTS.find(ct => ct.key === c.continent);
-  const badge = document.getElementById('detail-continent-badge');
-  badge.textContent = cont ? cont.label : c.continent;
-  badge.style.background = CONT_COLOR[c.continent] ?? '#e5e7eb';
-  document.getElementById('detail-desc').textContent = c.desc ?? '';
-  document.getElementById('detail-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  $dBadge.textContent = cont ? cont.label : c.continent;
+  $dBadge.style.background = CONT_COLOR[c.continent] ?? '#e5e7eb';
+
+  // glow color from CSS variable
+  const glowRaw = getComputedStyle(document.documentElement)
+    .getPropertyValue(`--c-${c.continent}`).trim();
+  $dWrap.style.setProperty('--glow', glowRaw + '55'); // 55 = ~33% opacity hex
+
+  $dDesc.textContent = c.desc ?? '';
+  $strip.classList.add('open');
+  $strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function closeDetail() {
-  document.getElementById('detail-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+  $strip.classList.remove('open');
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
@@ -656,19 +731,5 @@ buildFilters();
 applyFilters();
 </script>
 
-<div id="detail-overlay" onclick="closeDetail()">
-  <div id="detail-panel" onclick="event.stopPropagation()">
-    <button id="detail-close" onclick="closeDetail()">×</button>
-    <div id="detail-flag"></div>
-    <div id="detail-info">
-      <h2 id="detail-name"></h2>
-      <div id="detail-badges">
-        <span id="detail-type"></span>
-        <span id="detail-continent-badge"></span>
-      </div>
-      <p id="detail-desc"></p>
-    </div>
-  </div>
-</div>
 </body>
 </html>
