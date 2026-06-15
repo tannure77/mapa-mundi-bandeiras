@@ -1,4 +1,4 @@
-name: Deploy via FTP
+name: Deploy para Hostinger
 
 on:
   push:
@@ -10,15 +10,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: /ft/bandeiras/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
+      - name: Instalar lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Upload via FTPS
+        timeout-minutes: 10
+        env:
+          FTP_SERVER:   ${{ secrets.FTP_SERVER }}
+          FTP_USER:     ${{ secrets.FTP_USERNAME }}
+          FTP_PASS:     ${{ secrets.FTP_PASSWORD }}
+        run: |
+          for tentativa in 1 2 3; do
+            echo "Tentativa $tentativa de 3..."
+            lftp -c "
+              set ftp:ssl-force true;
+              set ssl:verify-certificate false;
+              set net:timeout 30;
+              set net:max-retries 2;
+              set net:reconnect-interval-base 5;
+              open -u $FTP_USER,$FTP_PASS $FTP_SERVER;
+              cd /ft/bandeiras;
+              put index.html;
+              bye
+            " && echo "Deploy concluído na tentativa $tentativa!" && exit 0
+            echo "Tentativa $tentativa falhou. Aguardando 15s..."
+            sleep 15
+          done
+          echo "Todas as tentativas falharam."
+          exit 1
