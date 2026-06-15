@@ -263,10 +263,11 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 #detail-type { background: var(--accent); color: #fff; }
 #detail-continent-badge { color: #111; }
 
-#detail-desc {
-  font-size: 15px; line-height: 1.8;
-  color: #9ca3af; margin: 0;
+#detail-desc p {
+  font-size: 15px; line-height: 1.55;
+  color: #9ca3af; margin: 0 0 10px;
 }
+#detail-desc p:last-child { margin-bottom: 0; }
 
 /* ── MOBILE ── */
 @media (max-width: 900px) {
@@ -321,7 +322,7 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
         <span id="detail-continent-badge"></span>
       </div>
       <h2 id="detail-name"></h2>
-      <p id="detail-desc"></p>
+      <div id="detail-desc"></div>
     </div>
     <button id="detail-close" onclick="closeDetail()">×</button>
   </div>
@@ -713,7 +714,11 @@ function openDetail(c) {
     .getPropertyValue(`--c-${c.continent}`).trim();
   $dWrap.style.setProperty('--glow', glowRaw + '55'); // 55 = ~33% opacity hex
 
-  $dDesc.textContent = c.desc ?? '';
+  const sentences = (c.desc ?? '').match(/[^.]+\./g) ?? [c.desc ?? ''];
+  const paras = [];
+  for (let i = 0; i < sentences.length; i += 2)
+    paras.push(sentences.slice(i, i + 2).join(' ').trim());
+  $dDesc.innerHTML = paras.map(p => `<p>${p}</p>`).join('');
   $strip.classList.add('open');
   $strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
