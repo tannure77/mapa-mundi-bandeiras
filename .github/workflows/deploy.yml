@@ -25,13 +25,12 @@ jobs:
             lftp -c "
               set ftp:ssl-force true;
               set ssl:verify-certificate false;
+              set cmd:fail-exit true;
               set net:timeout 30;
               set net:max-retries 2;
               set net:reconnect-interval-base 5;
               open -u $FTP_USER,$FTP_PASS $FTP_SERVER;
-              mkdir -p /public_html/ft/bandeiras;
-              cd /public_html/ft/bandeiras;
-              put index.html;
+              put -O /public_html/ft/bandeiras index.html;
               bye
             " && echo "Deploy concluído na tentativa $tentativa!" && exit 0
             echo "Tentativa $tentativa falhou. Aguardando 15s..."
