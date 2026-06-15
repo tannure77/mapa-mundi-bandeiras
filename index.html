@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandeiras do Mundo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏳️</text></svg>">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #181818;
+  --bg2:     #222222;
+  --card:    #ffffff;
+  --border:  #333333;
+  --text:    #f5f5f5;
+  --text2:   #888888;
+  --accent:  #6366f1;
+  --radius:  14px;
+
+  --c-africa:        #e8895a;
+  --c-asia:          #e05c5c;
+  --c-europe:        #2fbfad;
+  --c-north-america: #d4a94e;
+  --c-south-america: #4daf7c;
+  --c-oceania:       #4da6d4;
+  --c-all:           #6366f1;
+}
+
+html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px 12px;
+}
+
+.header-top {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+}
+
+header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+
+.search-wrap { position: relative; }
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; pointer-events: none; opacity: 0.45;
+}
+#search {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 7px 12px 7px 30px;
+  font-size: 14px; color: var(--text);
+  width: 220px; outline: none;
+  transition: border-color 0.2s;
+}
+#search:focus { border-color: var(--accent); }
+#search::placeholder { color: var(--text2); }
+
+/* ── CONTINENT FILTERS ── */
+.filters {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  border: 1.5px solid transparent;
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s, border-color 0.18s;
+  white-space: nowrap;
+}
+
+.filter-btn .dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+
+.filter-btn:hover {
+  color: var(--text);
+  border-color: currentColor;
+}
+
+.filter-btn.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.filter-btn[data-cont="all"].active      { background: var(--c-all); }
+.filter-btn[data-cont="africa"].active   { background: var(--c-africa); }
+.filter-btn[data-cont="asia"].active     { background: var(--c-asia); }
+.filter-btn[data-cont="europe"].active   { background: var(--c-europe); }
+.filter-btn[data-cont="north-america"].active { background: var(--c-north-america); }
+.filter-btn[data-cont="south-america"].active { background: var(--c-south-america); }
+.filter-btn[data-cont="oceania"].active  { background: var(--c-oceania); }
+
+/* ── STATS BAR ── */
+#stats {
+  padding: 10px 20px 0;
+  font-size: 13px; color: var(--text2);
+}
+
+/* ── GRID ── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  padding: 18px 24px 48px;
+}
+
+.flag-card {
+  position: relative;
+  background: var(--card);
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--radius);
+  padding: 35px 18px 25px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  cursor: default;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  animation: fadeIn 0.2s ease both;
+  user-select: none;
+}
+
+.flag-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  border-color: var(--accent);
+}
+
+.flag-emoji {
+  font-size: 90px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+}
+
+.flag-name {
+  font-size: 15px; font-weight: 700;
+  text-align: center; line-height: 1.35;
+  color: #111827;
+}
+
+.flag-iso {
+  font-size: 12px; font-weight: 700;
+  font-family: 'SF Mono', Menlo, monospace;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+.flag-cont-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  position: absolute; top: 10px; right: 10px;
+}
+
+/* ── EMPTY ── */
+#empty {
+  display: none;
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text2);
+  font-size: 17px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  #grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  header { padding: 12px 14px 10px; }
+  .header-top { margin-bottom: 10px; }
+  header h1 { font-size: 15px; }
+  #search { width: 150px; }
+  #grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 14px 32px; }
+  .flag-emoji { font-size: 65px; }
+  .flag-card { padding: 25px 12px 18px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>🏳️ Bandeiras do Mundo</h1>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="search" type="text" placeholder="Buscar país ou código…" oninput="applyFilters()">
+    </div>
+  </div>
+  <div class="filters" id="filters"></div>
+</header>
+
+<div id="stats"></div>
+
+<div id="grid">
+  <div id="empty">Nenhum país encontrado para essa busca.</div>
+</div>
+
+<script>
+// ================================================================
+//  DATASET — 249 países e territórios (pt-BR)
+// ================================================================
+const COUNTRIES = [
+  // ── ÁFRICA ──
+  { iso:"DZ", name:"Argélia",                      continent:"africa",        flag:"🇩🇿" },
+  { iso:"AO", name:"Angola",                        continent:"africa",        flag:"🇦🇴" },
+  { iso:"BJ", name:"Benin",                         continent:"africa",        flag:"🇧🇯" },
+  { iso:"BW", name:"Botswana",                      continent:"africa",        flag:"🇧🇼" },
+  { iso:"BF", name:"Burkina Faso",                  continent:"africa",        flag:"🇧🇫" },
+  { iso:"BI", name:"Burundi",                       continent:"africa",        flag:"🇧🇮" },
+  { iso:"CV", name:"Cabo Verde",                    continent:"africa",        flag:"🇨🇻" },
+  { iso:"CM", name:"Camarões",                      continent:"africa",        flag:"🇨🇲" },
+  { iso:"CF", name:"Rep. Centro-Africana",          continent:"africa",        flag:"🇨🇫" },
+  { iso:"TD", name:"Chade",                         continent:"africa",        flag:"🇹🇩" },
+  { iso:"KM", name:"Comores",                       continent:"africa",        flag:"🇰🇲" },
+  { iso:"CG", name:"Congo",                         continent:"africa",        flag:"🇨🇬" },
+  { iso:"CD", name:"RD Congo",                      continent:"africa",        flag:"🇨🇩" },
+  { iso:"CI", name:"Costa do Marfim",               continent:"africa",        flag:"🇨🇮" },
+  { iso:"DJ", name:"Djibuti",                       continent:"africa",        flag:"🇩🇯" },
+  { iso:"EG", name:"Egito",                         continent:"africa",        flag:"🇪🇬" },
+  { iso:"GQ", name:"Guiné Equatorial",              continent:"africa",        flag:"🇬🇶" },
+  { iso:"ER", name:"Eritreia",                      continent:"africa",        flag:"🇪🇷" },
+  { iso:"SZ", name:"Essuatíni",                     continent:"africa",        flag:"🇸🇿" },
+  { iso:"ET", name:"Etiópia",                       continent:"africa",        flag:"🇪🇹" },
+  { iso:"GA", name:"Gabão",                         continent:"africa",        flag:"🇬🇦" },
+  { iso:"GM", name:"Gâmbia",                        continent:"africa",        flag:"🇬🇲" },
+  { iso:"GH", name:"Gana",                          continent:"africa",        flag:"🇬🇭" },
+  { iso:"GN", name:"Guiné",                         continent:"africa",        flag:"🇬🇳" },
+  { iso:"GW", name:"Guiné-Bissau",                  continent:"africa",        flag:"🇬🇼" },
+  { iso:"KE", name:"Quênia",                        continent:"africa",        flag:"🇰🇪" },
+  { iso:"LS", name:"Lesoto",                        continent:"africa",        flag:"🇱🇸" },
+  { iso:"LR", name:"Libéria",                       continent:"africa",        flag:"🇱🇷" },
+  { iso:"LY", name:"Líbia",                         continent:"africa",        flag:"🇱🇾" },
+  { iso:"MG", name:"Madagascar",                    continent:"africa",        flag:"🇲🇬" },
+  { iso:"MW", name:"Malawi",                        continent:"africa",        flag:"🇲🇼" },
+  { iso:"ML", name:"Mali",                          continent:"africa",        flag:"🇲🇱" },
+  { iso:"MR", name:"Mauritânia",                    continent:"africa",        flag:"🇲🇷" },
+  { iso:"MU", name:"Maurício",                      continent:"africa",        flag:"🇲🇺" },
+  { iso:"MA", name:"Marrocos",                      continent:"africa",        flag:"🇲🇦" },
+  { iso:"MZ", name:"Moçambique",                    continent:"africa",        flag:"🇲🇿" },
+  { iso:"NA", name:"Namíbia",                       continent:"africa",        flag:"🇳🇦" },
+  { iso:"NE", name:"Níger",                         continent:"africa",        flag:"🇳🇪" },
+  { iso:"NG", name:"Nigéria",                       continent:"africa",        flag:"🇳🇬" },
+  { iso:"RW", name:"Ruanda",                        continent:"africa",        flag:"🇷🇼" },
+  { iso:"ST", name:"S. Tomé e Príncipe",            continent:"africa",        flag:"🇸🇹" },
+  { iso:"SN", name:"Senegal",                       continent:"africa",        flag:"🇸🇳" },
+  { iso:"SL", name:"Serra Leoa",                    continent:"africa",        flag:"🇸🇱" },
+  { iso:"SO", name:"Somália",                       continent:"africa",        flag:"🇸🇴" },
+  { iso:"ZA", name:"África do Sul",                 continent:"africa",        flag:"🇿🇦" },
+  { iso:"SS", name:"Sudão do Sul",                  continent:"africa",        flag:"🇸🇸" },
+  { iso:"SD", name:"Sudão",                         continent:"africa",        flag:"🇸🇩" },
+  { iso:"TZ", name:"Tanzânia",                      continent:"africa",        flag:"🇹🇿" },
+  { iso:"TG", name:"Togo",                          continent:"africa",        flag:"🇹🇬" },
+  { iso:"TN", name:"Tunísia",                       continent:"africa",        flag:"🇹🇳" },
+  { iso:"UG", name:"Uganda",                        continent:"africa",        flag:"🇺🇬" },
+  { iso:"ZM", name:"Zâmbia",                        continent:"africa",        flag:"🇿🇲" },
+  { iso:"ZW", name:"Zimbábue",                      continent:"africa",        flag:"🇿🇼" },
+  { iso:"RE", name:"Reunião",                       continent:"africa",        flag:"🇷🇪" },
+  { iso:"YT", name:"Mayotte",                       continent:"africa",        flag:"🇾🇹" },
+  { iso:"EH", name:"Saara Ocidental",               continent:"africa",        flag:"🇪🇭" },
+
+  // ── ÁSIA ──
+  { iso:"AF", name:"Afeganistão",                   continent:"asia",          flag:"🇦🇫" },
+  { iso:"AM", name:"Armênia",                       continent:"asia",          flag:"🇦🇲" },
+  { iso:"AZ", name:"Azerbaijão",                    continent:"asia",          flag:"🇦🇿" },
+  { iso:"BH", name:"Bahrein",                       continent:"asia",          flag:"🇧🇭" },
+  { iso:"BD", name:"Bangladesh",                    continent:"asia",          flag:"🇧🇩" },
+  { iso:"BT", name:"Butão",                         continent:"asia",          flag:"🇧🇹" },
+  { iso:"BN", name:"Brunei",                        continent:"asia",          flag:"🇧🇳" },
+  { iso:"KH", name:"Camboja",                       continent:"asia",          flag:"🇰🇭" },
+  { iso:"CN", name:"China",                         continent:"asia",          flag:"🇨🇳" },
+  { iso:"CY", name:"Chipre",                        continent:"asia",          flag:"🇨🇾" },
+  { iso:"GE", name:"Geórgia",                       continent:"asia",          flag:"🇬🇪" },
+  { iso:"IN", name:"Índia",                         continent:"asia",          flag:"🇮🇳" },
+  { iso:"ID", name:"Indonésia",                     continent:"asia",          flag:"🇮🇩" },
+  { iso:"IR", name:"Irã",                           continent:"asia",          flag:"🇮🇷" },
+  { iso:"IQ", name:"Iraque",                        continent:"asia",          flag:"🇮🇶" },
+  { iso:"IL", name:"Israel",                        continent:"asia",          flag:"🇮🇱" },
+  { iso:"JP", name:"Japão",                         continent:"asia",          flag:"🇯🇵" },
+  { iso:"JO", name:"Jordânia",                      continent:"asia",          flag:"🇯🇴" },
+  { iso:"KZ", name:"Cazaquistão",                   continent:"asia",          flag:"🇰🇿" },
+  { iso:"KW", name:"Kuwait",                        continent:"asia",          flag:"🇰🇼" },
+  { iso:"KG", name:"Quirguistão",                   continent:"asia",          flag:"🇰🇬" },
+  { iso:"LA", name:"Laos",                          continent:"asia",          flag:"🇱🇦" },
+  { iso:"LB", name:"Líbano",                        continent:"asia",          flag:"🇱🇧" },
+  { iso:"MY", name:"Malásia",                       continent:"asia",          flag:"🇲🇾" },
+  { iso:"MV", name:"Maldivas",                      continent:"asia",          flag:"🇲🇻" },
+  { iso:"MN", name:"Mongólia",                      continent:"asia",          flag:"🇲🇳" },
+  { iso:"MM", name:"Mianmar",                       continent:"asia",          flag:"🇲🇲" },
+  { iso:"NP", name:"Nepal",                         continent:"asia",          flag:"🇳🇵" },
+  { iso:"KP", name:"Coreia do Norte",               continent:"asia",          flag:"🇰🇵" },
+  { iso:"OM", name:"Omã",                           continent:"asia",          flag:"🇴🇲" },
+  { iso:"PK", name:"Paquistão",                     continent:"asia",          flag:"🇵🇰" },
+  { iso:"PS", name:"Palestina",                     continent:"asia",          flag:"🇵🇸" },
+  { iso:"PH", name:"Filipinas",                     continent:"asia",          flag:"🇵🇭" },
+  { iso:"QA", name:"Catar",                         continent:"asia",          flag:"🇶🇦" },
+  { iso:"SA", name:"Arábia Saudita",                continent:"asia",          flag:"🇸🇦" },
+  { iso:"SG", name:"Singapura",                     continent:"asia",          flag:"🇸🇬" },
+  { iso:"KR", name:"Coreia do Sul",                 continent:"asia",          flag:"🇰🇷" },
+  { iso:"LK", name:"Sri Lanka",                     continent:"asia",          flag:"🇱🇰" },
+  { iso:"SY", name:"Síria",                         continent:"asia",          flag:"🇸🇾" },
+  { iso:"TW", name:"Taiwan",                        continent:"asia",          flag:"🇹🇼" },
+  { iso:"TJ", name:"Tadjiquistão",                  continent:"asia",          flag:"🇹🇯" },
+  { iso:"TH", name:"Tailândia",                     continent:"asia",          flag:"🇹🇭" },
+  { iso:"TL", name:"Timor-Leste",                   continent:"asia",          flag:"🇹🇱" },
+  { iso:"TR", name:"Turquia",                       continent:"asia",          flag:"🇹🇷" },
+  { iso:"TM", name:"Turcomenistão",                 continent:"asia",          flag:"🇹🇲" },
+  { iso:"AE", name:"Emirados Árabes",               continent:"asia",          flag:"🇦🇪" },
+  { iso:"UZ", name:"Uzbequistão",                   continent:"asia",          flag:"🇺🇿" },
+  { iso:"VN", name:"Vietnã",                        continent:"asia",          flag:"🇻🇳" },
+  { iso:"YE", name:"Iêmen",                         continent:"asia",          flag:"🇾🇪" },
+  { iso:"HK", name:"Hong Kong",                     continent:"asia",          flag:"🇭🇰" },
+  { iso:"MO", name:"Macau",                         continent:"asia",          flag:"🇲🇴" },
+
+  // ── EUROPA ──
+  { iso:"AL", name:"Albânia",                       continent:"europe",        flag:"🇦🇱" },
+  { iso:"AD", name:"Andorra",                       continent:"europe",        flag:"🇦🇩" },
+  { iso:"AT", name:"Áustria",                       continent:"europe",        flag:"🇦🇹" },
+  { iso:"BY", name:"Bielorrússia",                  continent:"europe",        flag:"🇧🇾" },
+  { iso:"BE", name:"Bélgica",                       continent:"europe",        flag:"🇧🇪" },
+  { iso:"BA", name:"Bósnia e Herzegovina",          continent:"europe",        flag:"🇧🇦" },
+  { iso:"BG", name:"Bulgária",                      continent:"europe",        flag:"🇧🇬" },
+  { iso:"HR", name:"Croácia",                       continent:"europe",        flag:"🇭🇷" },
+  { iso:"CZ", name:"Rep. Tcheca",                   continent:"europe",        flag:"🇨🇿" },
+  { iso:"DK", name:"Dinamarca",                     continent:"europe",        flag:"🇩🇰" },
+  { iso:"EE", name:"Estônia",                       continent:"europe",        flag:"🇪🇪" },
+  { iso:"FI", name:"Finlândia",                     continent:"europe",        flag:"🇫🇮" },
+  { iso:"FR", name:"França",                        continent:"europe",        flag:"🇫🇷" },
+  { iso:"DE", name:"Alemanha",                      continent:"europe",        flag:"🇩🇪" },
+  { iso:"GR", name:"Grécia",                        continent:"europe",        flag:"🇬🇷" },
+  { iso:"HU", name:"Hungria",                       continent:"europe",        flag:"🇭🇺" },
+  { iso:"IS", name:"Islândia",                      continent:"europe",        flag:"🇮🇸" },
+  { iso:"IE", name:"Irlanda",                       continent:"europe",        flag:"🇮🇪" },
+  { iso:"IT", name:"Itália",                        continent:"europe",        flag:"🇮🇹" },
+  { iso:"XK", name:"Kosovo",                        continent:"europe",        flag:"🇽🇰" },
+  { iso:"LV", name:"Letônia",                       continent:"europe",        flag:"🇱🇻" },
+  { iso:"LI", name:"Liechtenstein",                 continent:"europe",        flag:"🇱🇮" },
+  { iso:"LT", name:"Lituânia",                      continent:"europe",        flag:"🇱🇹" },
+  { iso:"LU", name:"Luxemburgo",                    continent:"europe",        flag:"🇱🇺" },
+  { iso:"MT", name:"Malta",                         continent:"europe",        flag:"🇲🇹" },
+  { iso:"MD", name:"Moldávia",                      continent:"europe",        flag:"🇲🇩" },
+  { iso:"MC", name:"Mônaco",                        continent:"europe",        flag:"🇲🇨" },
+  { iso:"ME", name:"Montenegro",                    continent:"europe",        flag:"🇲🇪" },
+  { iso:"NL", name:"Países Baixos",                 continent:"europe",        flag:"🇳🇱" },
+  { iso:"MK", name:"Macedônia do Norte",            continent:"europe",        flag:"🇲🇰" },
+  { iso:"NO", name:"Noruega",                       continent:"europe",        flag:"🇳🇴" },
+  { iso:"PL", name:"Polônia",                       continent:"europe",        flag:"🇵🇱" },
+  { iso:"PT", name:"Portugal",                      continent:"europe",        flag:"🇵🇹" },
+  { iso:"RO", name:"Romênia",                       continent:"europe",        flag:"🇷🇴" },
+  { iso:"RU", name:"Rússia",                        continent:"europe",        flag:"🇷🇺" },
+  { iso:"SM", name:"San Marino",                    continent:"europe",        flag:"🇸🇲" },
+  { iso:"RS", name:"Sérvia",                        continent:"europe",        flag:"🇷🇸" },
+  { iso:"SK", name:"Eslováquia",                    continent:"europe",        flag:"🇸🇰" },
+  { iso:"SI", name:"Eslovênia",                     continent:"europe",        flag:"🇸🇮" },
+  { iso:"ES", name:"Espanha",                       continent:"europe",        flag:"🇪🇸" },
+  { iso:"SE", name:"Suécia",                        continent:"europe",        flag:"🇸🇪" },
+  { iso:"CH", name:"Suíça",                         continent:"europe",        flag:"🇨🇭" },
+  { iso:"UA", name:"Ucrânia",                       continent:"europe",        flag:"🇺🇦" },
+  { iso:"GB", name:"Reino Unido",                   continent:"europe",        flag:"🇬🇧" },
+  { iso:"VA", name:"Vaticano",                      continent:"europe",        flag:"🇻🇦" },
+  { iso:"GI", name:"Gibraltar",                     continent:"europe",        flag:"🇬🇮" },
+
+  // ── AMÉRICA DO NORTE ──
+  { iso:"AG", name:"Antígua e Barbuda",             continent:"north-america", flag:"🇦🇬" },
+  { iso:"BS", name:"Bahamas",                       continent:"north-america", flag:"🇧🇸" },
+  { iso:"BB", name:"Barbados",                      continent:"north-america", flag:"🇧🇧" },
+  { iso:"BZ", name:"Belize",                        continent:"north-america", flag:"🇧🇿" },
+  { iso:"CA", name:"Canadá",                        continent:"north-america", flag:"🇨🇦" },
+  { iso:"CR", name:"Costa Rica",                    continent:"north-america", flag:"🇨🇷" },
+  { iso:"CU", name:"Cuba",                          continent:"north-america", flag:"🇨🇺" },
+  { iso:"DM", name:"Dominica",                      continent:"north-america", flag:"🇩🇲" },
+  { iso:"DO", name:"Rep. Dominicana",               continent:"north-america", flag:"🇩🇴" },
+  { iso:"SV", name:"El Salvador",                   continent:"north-america", flag:"🇸🇻" },
+  { iso:"GD", name:"Granada",                       continent:"north-america", flag:"🇬🇩" },
+  { iso:"GT", name:"Guatemala",                     continent:"north-america", flag:"🇬🇹" },
+  { iso:"HT", name:"Haiti",                         continent:"north-america", flag:"🇭🇹" },
+  { iso:"HN", name:"Honduras",                      continent:"north-america", flag:"🇭🇳" },
+  { iso:"JM", name:"Jamaica",                       continent:"north-america", flag:"🇯🇲" },
+  { iso:"MX", name:"México",                        continent:"north-america", flag:"🇲🇽" },
+  { iso:"NI", name:"Nicarágua",                     continent:"north-america", flag:"🇳🇮" },
+  { iso:"PA", name:"Panamá",                        continent:"north-america", flag:"🇵🇦" },
+  { iso:"KN", name:"S. Cristóvão e Névis",          continent:"north-america", flag:"🇰🇳" },
+  { iso:"LC", name:"Santa Lúcia",                   continent:"north-america", flag:"🇱🇨" },
+  { iso:"VC", name:"S. Vicente e Granadinas",       continent:"north-america", flag:"🇻🇨" },
+  { iso:"TT", name:"Trinidad e Tobago",             continent:"north-america", flag:"🇹🇹" },
+  { iso:"US", name:"Estados Unidos",                continent:"north-america", flag:"🇺🇸" },
+  { iso:"PR", name:"Porto Rico",                    continent:"north-america", flag:"🇵🇷" },
+  { iso:"GL", name:"Groenlândia",                   continent:"north-america", flag:"🇬🇱" },
+  { iso:"TC", name:"Ilhas Turks e Caicos",          continent:"north-america", flag:"🇹🇨" },
+  { iso:"KY", name:"Ilhas Cayman",                  continent:"north-america", flag:"🇰🇾" },
+  { iso:"VG", name:"Ilhas Virgens Brit.",           continent:"north-america", flag:"🇻🇬" },
+  { iso:"VI", name:"Ilhas Virgens EUA",             continent:"north-america", flag:"🇻🇮" },
+  { iso:"CW", name:"Curaçao",                       continent:"north-america", flag:"🇨🇼" },
+  { iso:"AW", name:"Aruba",                         continent:"north-america", flag:"🇦🇼" },
+
+  // ── AMÉRICA DO SUL ──
+  { iso:"AR", name:"Argentina",                     continent:"south-america", flag:"🇦🇷" },
+  { iso:"BO", name:"Bolívia",                       continent:"south-america", flag:"🇧🇴" },
+  { iso:"BR", name:"Brasil",                        continent:"south-america", flag:"🇧🇷" },
+  { iso:"CL", name:"Chile",                         continent:"south-america", flag:"🇨🇱" },
+  { iso:"CO", name:"Colômbia",                      continent:"south-america", flag:"🇨🇴" },
+  { iso:"EC", name:"Equador",                       continent:"south-america", flag:"🇪🇨" },
+  { iso:"GY", name:"Guiana",                        continent:"south-america", flag:"🇬🇾" },
+  { iso:"PY", name:"Paraguai",                      continent:"south-america", flag:"🇵🇾" },
+  { iso:"PE", name:"Peru",                          continent:"south-america", flag:"🇵🇪" },
+  { iso:"SR", name:"Suriname",                      continent:"south-america", flag:"🇸🇷" },
+  { iso:"UY", name:"Uruguai",                       continent:"south-america", flag:"🇺🇾" },
+  { iso:"VE", name:"Venezuela",                     continent:"south-america", flag:"🇻🇪" },
+  { iso:"GF", name:"Guiana Francesa",               continent:"south-america", flag:"🇬🇫" },
+  { iso:"FK", name:"Ilhas Malvinas",                continent:"south-america", flag:"🇫🇰" },
+
+  // ── OCEANIA ──
+  { iso:"AU", name:"Austrália",                     continent:"oceania",       flag:"🇦🇺" },
+  { iso:"FJ", name:"Fiji",                          continent:"oceania",       flag:"🇫🇯" },
+  { iso:"KI", name:"Kiribati",                      continent:"oceania",       flag:"🇰🇮" },
+  { iso:"MH", name:"Ilhas Marshall",                continent:"oceania",       flag:"🇲🇭" },
+  { iso:"FM", name:"Micronésia",                    continent:"oceania",       flag:"🇫🇲" },
+  { iso:"NR", name:"Nauru",                         continent:"oceania",       flag:"🇳🇷" },
+  { iso:"NZ", name:"Nova Zelândia",                 continent:"oceania",       flag:"🇳🇿" },
+  { iso:"PW", name:"Palau",                         continent:"oceania",       flag:"🇵🇼" },
+  { iso:"PG", name:"Papua Nova Guiné",              continent:"oceania",       flag:"🇵🇬" },
+  { iso:"WS", name:"Samoa",                         continent:"oceania",       flag:"🇼🇸" },
+  { iso:"SB", name:"Ilhas Salomão",                 continent:"oceania",       flag:"🇸🇧" },
+  { iso:"TO", name:"Tonga",                         continent:"oceania",       flag:"🇹🇴" },
+  { iso:"TV", name:"Tuvalu",                        continent:"oceania",       flag:"🇹🇻" },
+  { iso:"VU", name:"Vanuatu",                       continent:"oceania",       flag:"🇻🇺" },
+  { iso:"NC", name:"Nova Caledônia",                continent:"oceania",       flag:"🇳🇨" },
+  { iso:"PF", name:"Polinésia Francesa",            continent:"oceania",       flag:"🇵🇫" },
+  { iso:"CK", name:"Ilhas Cook",                    continent:"oceania",       flag:"🇨🇰" },
+  { iso:"WF", name:"Wallis e Futuna",               continent:"oceania",       flag:"🇼🇫" },
+  { iso:"AS", name:"Samoa Americana",               continent:"oceania",       flag:"🇦🇸" },
+  { iso:"GU", name:"Guam",                          continent:"oceania",       flag:"🇬🇺" },
+];
+
+// ================================================================
+//  CONTINENTES
+// ================================================================
+const CONTINENTS = [
+  { key:"all",           label:"Todos",         emoji:"🌐", color:"var(--c-all)"           },
+  { key:"africa",        label:"África",         emoji:"🌍", color:"var(--c-africa)"        },
+  { key:"asia",          label:"Ásia",           emoji:"🌏", color:"var(--c-asia)"          },
+  { key:"europe",        label:"Europa",         emoji:"🌍", color:"var(--c-europe)"        },
+  { key:"north-america", label:"Am. do Norte",   emoji:"🌎", color:"var(--c-north-america)" },
+  { key:"south-america", label:"Am. do Sul",     emoji:"🌎", color:"var(--c-south-america)" },
+  { key:"oceania",       label:"Oceania",        emoji:"🌏", color:"var(--c-oceania)"       },
+];
+
+// Lookup de cor por continente (derivado de CONTINENTS — sem duplicação)
+const CONT_COLOR = Object.fromEntries(CONTINENTS.slice(1).map(c => [c.key, c.color]));
+
+// ================================================================
+//  PRÉ-PROCESSAMENTO — listas ordenadas por continente (executa 1x)
+// ================================================================
+const collator = new Intl.Collator('pt-BR');
+const SORTED = {
+  all: [...COUNTRIES].sort((a, b) => collator.compare(a.name, b.name)),
+};
+CONTINENTS.slice(1).forEach(({ key }) => {
+  SORTED[key] = SORTED.all.filter(c => c.continent === key);
+});
+
+// ================================================================
+//  ESTADO E REFS DOM
+// ================================================================
+let activeContinent = 'all';
+let activeBtn       = null;
+
+const $grid   = document.getElementById('grid');
+const $empty  = document.getElementById('empty');
+const $stats  = document.getElementById('stats');
+const $search = document.getElementById('search');
+
+// ================================================================
+//  BUILD FILTERS
+// ================================================================
+function buildFilters() {
+  const wrap = document.getElementById('filters');
+  CONTINENTS.forEach(c => {
+    const count = SORTED[c.key]?.length ?? COUNTRIES.length;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (c.key === 'all' ? ' active' : '');
+    btn.dataset.cont = c.key;
+
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.background = c.color;
+    btn.appendChild(dot);
+    btn.append(`${c.emoji} ${c.label} (${count})`);
+
+    btn.addEventListener('click', () => {
+      if (activeBtn) activeBtn.classList.remove('active');
+      btn.classList.add('active');
+      activeBtn = btn;
+      activeContinent = c.key;
+      applyFilters();
+    });
+
+    if (c.key === 'all') activeBtn = btn;
+    wrap.appendChild(btn);
+  });
+}
+
+// ================================================================
+//  RENDER GRID
+// ================================================================
+function applyFilters() {
+  const q = $search.value.toLowerCase().trim();
+  let list = SORTED[activeContinent];
+
+  if (q) {
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(q) || c.iso.toLowerCase().includes(q)
+    );
+  }
+
+  // Limpa cards anteriores mantendo o #empty no grid
+  $grid.replaceChildren($empty);
+
+  if (list.length === 0) {
+    $empty.style.display = 'block';
+    $stats.textContent = '';
+    return;
+  }
+
+  $empty.style.display = 'none';
+  $stats.textContent = `${list.length} ${activeContinent === 'all' ? 'países e territórios' : 'países'}${q ? ` com "${q}"` : ''}`;
+
+  const frag = document.createDocumentFragment();
+  list.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'flag-card';
+    card.style.animationDelay = `${Math.min(i * 18, 300)}ms`;
+    card.innerHTML =
+      `<div class="flag-cont-dot" style="background:${CONT_COLOR[c.continent]}"></div>` +
+      `<div class="flag-emoji">${c.flag}</div>` +
+      `<div class="flag-name">${c.name}</div>` +
+      `<div class="flag-iso">${c.iso}</div>`;
+    frag.appendChild(card);
+  });
+  $grid.appendChild(frag);
+}
+
+// ================================================================
+//  INIT
+// ================================================================
+buildFilters();
+applyFilters();
+</script>
+</body>
+</html>
