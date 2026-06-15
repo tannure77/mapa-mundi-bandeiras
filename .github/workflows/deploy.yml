@@ -29,6 +29,7 @@ jobs:
               set net:max-retries 2;
               set net:reconnect-interval-base 5;
               open -u $FTP_USER,$FTP_PASS $FTP_SERVER;
+              mkdir -p /ft/bandeiras;
               cd /ft/bandeiras;
               put index.html;
               bye
