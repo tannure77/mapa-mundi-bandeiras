@@ -219,7 +219,7 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 #detail-close:hover { background: rgba(255,255,255,0.12); color: #f3f4f6; }
 
 #detail-nav {
-  display: flex; align-items: center; gap: 10px; margin-top: 22px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 }
 #detail-prev, #detail-next {
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
@@ -235,7 +235,7 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 
 #detail-flag-wrap {
   position: relative;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
 #detail-flag-wrap::before {
   content: '';
@@ -337,6 +337,11 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 <div id="detail-strip">
   <div id="detail-strip-inner">
     <div id="detail-flag-wrap">
+      <div id="detail-nav">
+        <button id="detail-prev" onclick="navigate(-1)">←</button>
+        <span id="detail-nav-counter"></span>
+        <button id="detail-next" onclick="navigate(1)">→</button>
+      </div>
       <img id="detail-flag-img" src="" alt="">
       <span id="detail-flag-emoji"></span>
     </div>
@@ -347,11 +352,6 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
       </div>
       <h2 id="detail-name"></h2>
       <div id="detail-desc"></div>
-      <div id="detail-nav">
-        <button id="detail-prev" onclick="navigate(-1)">←</button>
-        <span id="detail-nav-counter"></span>
-        <button id="detail-next" onclick="navigate(1)">→</button>
-      </div>
     </div>
     <button id="detail-close" onclick="closeDetail()">×</button>
   </div>
