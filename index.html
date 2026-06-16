@@ -218,6 +218,21 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
 }
 #detail-close:hover { background: rgba(255,255,255,0.12); color: #f3f4f6; }
 
+#detail-nav {
+  display: flex; align-items: center; gap: 10px; margin-top: 22px;
+}
+#detail-prev, #detail-next {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; cursor: pointer; color: #9ca3af;
+  padding: 6px 16px; font-size: 18px; line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+#detail-prev:hover:not(:disabled), #detail-next:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12); color: #f3f4f6;
+}
+#detail-prev:disabled, #detail-next:disabled { opacity: 0.28; cursor: default; }
+#detail-nav-counter { font-size: 13px; color: #6b7280; min-width: 52px; text-align: center; }
+
 #detail-flag-wrap {
   position: relative;
   display: flex; align-items: center; justify-content: center;
@@ -289,6 +304,15 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
   .header-top { margin-bottom: 10px; }
   header h1 { font-size: 15px; }
   #search { width: 150px; }
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn { flex-shrink: 0; }
   #grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 14px 32px; }
   .flag-emoji { font-size: 65px; }
   .flag-card { padding: 25px 12px 18px; }
@@ -323,6 +347,11 @@ header h1 { font-size: 18px; font-weight: 700; flex: 1; }
       </div>
       <h2 id="detail-name"></h2>
       <div id="detail-desc"></div>
+      <div id="detail-nav">
+        <button id="detail-prev" onclick="navigate(-1)">←</button>
+        <span id="detail-nav-counter"></span>
+        <button id="detail-next" onclick="navigate(1)">→</button>
+      </div>
     </div>
     <button id="detail-close" onclick="closeDetail()">×</button>
   </div>
@@ -600,6 +629,8 @@ CONTINENTS.slice(1).forEach(({ key }) => {
 // ================================================================
 let activeContinent = 'all';
 let activeBtn       = null;
+let currentList     = [];
+let currentIdx      = -1;
 
 const $grid   = document.getElementById('grid');
 const $empty  = document.getElementById('empty');
@@ -659,6 +690,7 @@ function applyFilters() {
   }
 
   $empty.style.display = 'none';
+  currentList = list;
   $stats.textContent = `${list.length} ${activeContinent === 'all' ? 'países e territórios' : 'países'}${q ? ` com "${q}"` : ''}`;
 
   const frag = document.createDocumentFragment();
@@ -671,7 +703,7 @@ function applyFilters() {
       `<div class="flag-emoji">${c.flag}</div>` +
       `<div class="flag-name">${c.name}</div>` +
       `<div class="flag-iso">${c.iso}</div>`;
-    card.addEventListener('click', () => openDetail(c));
+    card.addEventListener('click', () => openDetail(c, i));
     frag.appendChild(card);
   });
   $grid.appendChild(frag);
@@ -688,8 +720,13 @@ const $dType   = document.getElementById('detail-type');
 const $dBadge  = document.getElementById('detail-continent-badge');
 const $dDesc   = document.getElementById('detail-desc');
 const $dWrap   = document.getElementById('detail-flag-wrap');
+const $dPrev   = document.getElementById('detail-prev');
+const $dNext   = document.getElementById('detail-next');
+const $dCounter= document.getElementById('detail-nav-counter');
 
-function openDetail(c) {
+function openDetail(c, idx) {
+  currentIdx = idx ?? currentList.indexOf(c);
+
   // flag image via flagcdn (fallback to emoji)
   const imgSrc = `https://flagcdn.com/w320/${c.iso.toLowerCase()}.png`;
   $flagImg.src = imgSrc;
@@ -712,24 +749,40 @@ function openDetail(c) {
   // glow color from CSS variable
   const glowRaw = getComputedStyle(document.documentElement)
     .getPropertyValue(`--c-${c.continent}`).trim();
-  $dWrap.style.setProperty('--glow', glowRaw + '55'); // 55 = ~33% opacity hex
+  $dWrap.style.setProperty('--glow', glowRaw + '55');
 
   const sentences = (c.desc ?? '').match(/[^.]+\./g) ?? [c.desc ?? ''];
   const paras = [];
   for (let i = 0; i < sentences.length; i += 2)
     paras.push(sentences.slice(i, i + 2).join(' ').trim());
   $dDesc.innerHTML = paras.map(p => `<p>${p}</p>`).join('');
+
+  $dPrev.disabled = currentIdx <= 0;
+  $dNext.disabled = currentIdx >= currentList.length - 1;
+  $dCounter.textContent = `${currentIdx + 1} / ${currentList.length}`;
+
   const headerH = (document.querySelector('header')?.offsetHeight ?? 0) + 16;
   $strip.style.scrollMarginTop = headerH + 'px';
   $strip.classList.add('open');
   $strip.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function navigate(delta) {
+  const next = currentIdx + delta;
+  if (next < 0 || next >= currentList.length) return;
+  openDetail(currentList[next], next);
+}
+
 function closeDetail() {
   $strip.classList.remove('open');
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDetail(); return; }
+  if (!$strip.classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  navigate(-1);
+  if (e.key === 'ArrowRight') navigate(1);
+});
 
 // ================================================================
 //  INIT
